@@ -9,6 +9,8 @@ type DiceVal = Int
 type Dices = (DiceVal,DiceVal,DiceVal,DiceVal,DiceVal)
 type Score = Int
 
+
+
 data CombinationResult = MakeCombinationResult [DiceVal] Score
                        deriving (Show,Eq)
 
@@ -78,6 +80,29 @@ hasYahtzee (a,b,c,d,e)
 hasChance :: CombinationTest
 hasChance (a,b,c,d,e) = Just (MakeCombinationResult [a,b,c,d,e] (a+b+c+d+e))
 
+
+countXs :: DiceVal -> CombinationTest
+countXs x dices = let xs = filter (== x) (dices2List dices)
+                  in Just (MakeCombinationResult xs (sum xs))
+
+has1s :: CombinationTest
+has1s = countXs 1
+
+has2s :: CombinationTest
+has2s = countXs 2
+
+has3s :: CombinationTest
+has3s = countXs 3
+
+has4s :: CombinationTest
+has4s = countXs 4
+
+has5s :: CombinationTest
+has5s = countXs 5
+
+has6s :: CombinationTest
+has6s = countXs 6
+
 testHasOnePair :: Test
 testHasOnePair = TestCase (do
                               assertEqual ""
@@ -140,6 +165,11 @@ testHasYahtzee = TestCase (assertEqual ""
                            (Just (MakeCombinationResult [2,2,2,2,2] 50))
                            (hasYahtzee (2,2,2,2,2)))
 
+testHas1s :: Test
+testHas1s = TestCase (assertEqual ""
+                      (Just (MakeCombinationResult [1,1,1] 3))
+                      (has1s (1,1,1,2,3)))
+
 tests :: Test
 tests = TestList [
   TestLabel "testHasOnePair" testHasOnePair
@@ -150,6 +180,7 @@ tests = TestList [
   , TestLabel "testHasSmallStraight" testHasSmallStraight
   , TestLabel "testHasLargeStraight" testHasLargeStraight
   , TestLabel "testHasYahtzee" testHasYahtzee
+  , TestLabel "testHas1s" testHas1s
   ]
         
 main :: IO Counts
