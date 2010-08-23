@@ -2,25 +2,69 @@
 
 module Game.HYahtzee.Engine where
 
-import Data.List
+import Data.List (nub, (\\))
 import Test.HUnit 
-import Random
+import Test.QuickCheck.Gen (Gen, choose)
+import Data.Map (Map)
+import qualified Data.Map as Map
 
 type DiceVal = Int
 type Dices = (DiceVal,DiceVal,DiceVal,DiceVal,DiceVal)
 type Score = Int
 
-rollDices :: Int -> [IO DiceVal]
-rollDices 0 = []
-rollDices x = rollDice : rollDices (x - 1) where
-  rollDice = getStdRandom (randomR (1,6))
-
-{- Combination tests -}
-
 data CombinationResult = MakeCombinationResult [DiceVal] Score
                        deriving (Show,Eq)
 
 type CombinationTest = Dices -> CombinationResult
+
+rollDices :: Int -> [Gen DiceVal]
+rollDices 0 = []
+rollDices x = rollDice : rollDices (x - 1) where
+  rollDice = choose (1,6)
+  
+{- Player table -}
+
+type CombinationName = String
+type YTable = Map CombinationName Score
+                     
+getScore :: YTable -> CombinationName -> Maybe Score
+getScore table testName = Map.lookup testName table
+
+addScore :: CombinationName -> Score -> YTable -> YTable
+addScore = Map.insert
+
+freeCombinations :: YTable -> [CombinationName]
+freeCombinations table = (fst `map` combinationTests) \\ Map.keys table
+
+isTableFull :: YTable -> Bool
+isTableFull table = null $ freeCombinations table
+
+oneTurn :: YTable -> YTable
+oneTurn table = table {- TODO -}
+
+onePlayer :: YTable -> YTable
+onePlayer table
+  | isTableFull table = table
+  | otherwise         = onePlayer $ oneTurn table
+
+{- Combination tests -}
+
+combinationTests :: [(CombinationName, CombinationTest)]
+combinationTests = [ ("Aces", hasAces)
+                   , ("Twos", hasTwos)
+                   , ("Threes", hasThrees)
+                   , ("Fours", hasFours)
+                   , ("Fives", hasFives)
+                   , ("Sixes", hasSixes)
+                   , ("OnePair", hasOnePair)
+                   , ("TwoPairs", hasTwoPairs)
+                   , ("ThreeOfAKind", hasThreeOfAKind)
+                   , ("FourOfAKind", hasFourOfAKind)
+                   , ("FullHouse", hasFullHouse)
+                   , ("SmallStraight", hasSmallStraight)
+                   , ("LargeStraight", hasLargeStraight)
+                   , ("Yahtzee", hasYahtzee)
+                   , ("Chance", hasChance)]
 
 dices2List :: Dices -> [DiceVal]
 dices2List (a,b,c,d,e) = [a,b,c,d,e]
@@ -93,23 +137,23 @@ countXs :: DiceVal -> CombinationTest
 countXs x dices = let xs = filter (== x) (dices2List dices)
                   in  (MakeCombinationResult xs (sum xs))
 
-has1s :: CombinationTest
-has1s = countXs 1
+hasAces :: CombinationTest
+hasAces = countXs 1
 
-has2s :: CombinationTest
-has2s = countXs 2
+hasTwos :: CombinationTest
+hasTwos = countXs 2
 
-has3s :: CombinationTest
-has3s = countXs 3
+hasThrees :: CombinationTest
+hasThrees = countXs 3
 
-has4s :: CombinationTest
-has4s = countXs 4
+hasFours :: CombinationTest
+hasFours = countXs 4
 
-has5s :: CombinationTest
-has5s = countXs 5
+hasFives :: CombinationTest
+hasFives = countXs 5
 
-has6s :: CombinationTest
-has6s = countXs 6
+hasSixes :: CombinationTest
+hasSixes = countXs 6
 
 {- Unit Tests -}
 
@@ -174,7 +218,7 @@ testHasYahtzee = TestCase (assertTestResult
                            
 testHas1s :: Test
 testHas1s = TestCase (assertTestResult
-                      has1s (1,1,1,2,3) [1,1,1] 3)
+                      hasAces (1,1,1,2,3) [1,1,1] 3)
                       
 tests :: Test
 tests = TestList [
