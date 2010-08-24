@@ -4,9 +4,10 @@ module Game.HYahtzee.Engine where
 
 import Data.List (nub, (\\))
 import Test.HUnit 
-import Test.QuickCheck.Gen (Gen, choose)
+import Test.QuickCheck.Gen (Gen, choose, unGen)
 import Data.Map (Map)
 import qualified Data.Map as Map
+import System.Random
 
 type DiceVal = Int
 type Dices = (DiceVal,DiceVal,DiceVal,DiceVal,DiceVal)
@@ -17,10 +18,11 @@ data CombinationResult = MakeCombinationResult [DiceVal] Score
 
 type CombinationTest = Dices -> CombinationResult
 
-rollDices :: Int -> [Gen DiceVal]
-rollDices 0 = []
-rollDices x = rollDice : rollDices (x - 1) where
-  rollDice = choose (1,6)
+rollDices :: Int -> Gen [DiceVal]
+rollDices 0 = do return []
+rollDices x = do dices <- rollDices (x-1)
+                 dice <- choose (1,6)
+                 return (dice:dices)
   
 {- Player table -}
 
@@ -39,14 +41,49 @@ freeCombinations table = (fst `map` combinationTests) \\ Map.keys table
 isTableFull :: YTable -> Bool
 isTableFull table = null $ freeCombinations table
 
-oneTurn :: YTable -> YTable
-oneTurn table = table {- TODO -}
+displayDice :: Gen DiceVal -> IO ()
+displayDice dice = do gen <- getStdGen
+                      let (gen1, gen2) = split gen
+                          val = unGen dice gen1 1
+                      putStr $ show val
+                      setStdGen gen2
 
-onePlayer :: YTable -> YTable
-onePlayer table
-  | isTableFull table = table
-  | otherwise         = onePlayer $ oneTurn table
+privDisplayDices :: Gen [DiceVal] -> IO ()
+privDisplayDices gdices =
+  do gen1 <- getStdGen
+     let dices = unGen gdices gen1 1
+     case dices of
+       (d1:rest@(_:_)) -> do displayDice (return d1)
+                             putStr ", "
+                             privDisplayDices (return rest)
+       (d1:[])         -> do displayDice (return d1)
+       _               -> return ()
+     
+displayDices :: Gen [DiceVal] -> IO ()
+displayDices dices = do putStr "{"
+                        privDisplayDices dices 
+                        putStrLn "}"
 
+oneThrow :: YTable -> IO (Gen [DiceVal])
+oneThrow _ = let dices = rollDices 5
+             in do displayDices dices >> return dices
+
+oneTurn :: YTable -> IO YTable
+oneTurn table = do oneThrow table >> return table
+  
+
+onePlayer :: IO YTable -> IO YTable
+onePlayer table = do mytable <- table
+                     -- let full = isTableFull mytable
+                     -- if full
+                     --   then table
+                     --   else 
+                     -- onePlayer $ 
+                     oneTurn mytable
+
+mainOnePlayer :: IO YTable
+mainOnePlayer = do onePlayer (return Map.empty :: IO YTable)
+                   
 {- Combination tests -}
 
 combinationTests :: [(CombinationName, CombinationTest)]
@@ -233,5 +270,5 @@ tests = TestList [
   , TestLabel "testHas1s" testHas1s
   ]
         
-main :: IO Counts
-main = runTestTT tests
+mainTests :: IO Counts
+mainTests = runTestTT tests
