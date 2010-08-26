@@ -8,7 +8,7 @@ type DiceVal = Int
 type Dices = (DiceVal,DiceVal,DiceVal,DiceVal,DiceVal)
 type Score = Int
 
-data CombinationResult = MakeCombinationResult [DiceVal] Score
+data CombinationResult = CombinationResult [DiceVal] Score
                        deriving (Show,Eq)
 
 type CombinationTest = Dices -> CombinationResult

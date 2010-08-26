@@ -5,13 +5,48 @@ module Game.HYahtzee.Test.EngineTest where
 import Test.HUnit 
 import Game.HYahtzee.Engine.Model
 import Game.HYahtzee.Engine.Combination
+import Game.HYahtzee.Engine.Logic
 
 {- Unit Tests -}
+
+myTable :: YTable
+myTable = addScore "Aces" 5 makeTable
+
+myMessages :: [String]
+myMessages = ["message1", "message2"]
+
+myData :: YData
+myData = YData myMessages myTable [6,5,4,3,2,1]
+
+testAddMessage :: Test
+testAddMessage = TestCase (
+  let newData = addMessage "message3" myData
+      expectedMessages = myMessages ++ ["message3"]
+  in assertEqual "" expectedMessages $ ydMessages newData)
+
+testConsumeRandoms :: Test
+testConsumeRandoms = TestCase (
+  let (newRandoms, newData) = consumeRandoms 2 myData
+  in (do assertEqual "" [6,5] newRandoms
+         assertEqual "" [4,3,2,1] (ydRandoms newData)))
+                     
+testDisplayDices :: Test
+testDisplayDices = TestCase (
+  let newData = displayDices [3,5,7] myData
+      newMessage = last $ ydMessages newData
+  in assertEqual "" "{3, 5, 7}" newMessage)
+
+logicTests :: Test
+logicTests = TestList [ TestLabel "testAddMessage" testAddMessage
+                      , TestLabel "testConsumeRandoms" testConsumeRandoms
+                      , TestLabel "testDisplayDices" testDisplayDices
+                      ]
+
 
 assertTestResult :: CombinationTest -> Dices -> [DiceVal] -> Score -> Assertion
 assertTestResult providedTest providedDices expectedDices expectedScore =
   assertEqual ""
-   (MakeCombinationResult expectedDices expectedScore)
+   (CombinationResult expectedDices expectedScore)
    (providedTest providedDices)
 
 testHasOnePair :: Test
@@ -71,8 +106,8 @@ testHas1s :: Test
 testHas1s = TestCase (assertTestResult
                       hasAces (1,1,1,2,3) [1,1,1] 3)
                       
-tests :: Test
-tests = TestList [
+combTests :: Test
+combTests = TestList [
   TestLabel "testHasOnePair" testHasOnePair
   , TestLabel "testHasTwoPairs" testHasTwoPairs
   , TestLabel "testHasThreeOfAKind" testHasThreeOfAKind
@@ -83,6 +118,9 @@ tests = TestList [
   , TestLabel "testHasYahtzee" testHasYahtzee
   , TestLabel "testHas1s" testHas1s
   ]
-        
+                   
+allTests :: Test
+allTests = TestList [logicTests, combTests]
+
 mainTests :: IO Counts
-mainTests = runTestTT tests
+mainTests = runTestTT allTests
