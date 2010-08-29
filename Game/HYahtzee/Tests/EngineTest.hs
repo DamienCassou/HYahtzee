@@ -16,7 +16,7 @@ myMessages :: [String]
 myMessages = ["message1", "message2"]
 
 myData :: YData
-myData = YData myMessages myTable [6,5,4,3,2,1]
+myData = YData myMessages ["2","5"] myTable [6,5,4,3,2,1]
 
 testAddMessage :: Test
 testAddMessage = TestCase (
@@ -36,10 +36,22 @@ testDisplayDices = TestCase (
       newMessage = last $ ydMessages newData
   in assertEqual "" "{3, 5, 7}" newMessage)
 
+testRequestChoice :: Test
+testRequestChoice = TestCase (
+  let (choice1, newData1) = requestChoice ["a","b","c"] myData
+      (choice2, newData2) = requestChoice ["d","e","f","g","h"] newData1
+  in (do assertEqual "Element 2 was selected" "b" choice1
+         assertEqual "Element 5 was selected" "h" choice2
+         assertBool  "First request should have printed something"
+           (length (ydMessages myData) < length (ydMessages newData1))
+         assertBool  "Second request should have printed something"
+           (length (ydMessages newData1) < length (ydMessages newData2))))
+
 logicTests :: Test
 logicTests = TestList [ TestLabel "testAddMessage" testAddMessage
                       , TestLabel "testConsumeRandoms" testConsumeRandoms
                       , TestLabel "testDisplayDices" testDisplayDices
+                      , TestLabel "testRequestChoice" testRequestChoice
                       ]
 
 
