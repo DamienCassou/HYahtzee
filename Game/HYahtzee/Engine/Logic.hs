@@ -28,6 +28,9 @@ addMessages :: [String] -> YData -> YData
 addMessages [] ydata       = ydata
 addMessages (f:rest) ydata = addMessages rest $ addMessage f ydata
 
+printMessages :: YData -> IO ()
+printMessages ydata = putStrLn $ unlines $ ydMessages ydata
+
 consumeRandoms :: Int-> YData -> ([DiceVal], YData)
 consumeRandoms num ydata = let (taken, rest) = splitAt num $ ydRandoms ydata
                                newData = ydata {ydRandoms = rest}
@@ -79,48 +82,40 @@ chooseWhereToScore dices ydata =
                    in changeTable newTable ydata2
     Nothing      -> chooseWhereToScore dices ydata2
 
--- TODO
 wantToContinue :: YData -> (Bool, YData)
-wantToContinue ydata = (True, ydata)
-
--- TODO
-onePlayerLogic2 :: [DiceVal] -> YData -> YData
-onePlayerLogic2 _ ydata = ydata
+wantToContinue ydata = let newYData1 = addMessage "Do you want to throw dices again?" ydata
+                           (input, newYData2) = requestChoice ["Yes","No"] newYData1
+                       in (input == "Yes", newYData2)
+                          
 
 onePlayerLogic :: YData -> YData
-onePlayerLogic ydata
-  | isTableFull (ydTable ydata) = ydata
-  | otherwise                   = 
-    let (dices, ydata2)  = consumeRandoms 5 ydata
-        ydata3             = displayDices dices ydata2
-        (continue, ydata4) = wantToContinue ydata3
-    in if continue
-       then onePlayerLogic2 dices ydata4
-       else onePlayerLogic $ chooseWhereToScore dices ydata4
-            
-
--- printMessages :: [String] -> IO ()
--- printMessages (m:rest) = do putStrLn m
---                             printMessages rest
--- printMessages []       = return ()                            
-
--- mainOnePlayer :: IO ()
--- mainOnePlayer = do gen <- getStdGen
---                    inputStr <- getContents
---                    printMessages $ onePlayerLogic makeTable (randomRs (1,6) gen) inputStr
+onePlayerLogic ydata =
+  let (dices, newYData1) = consumeRandoms 5 ydata
+      newYData2 = displayDices dices newYData1
+      (throwAgain, newYData3) = wantToContinue newYData2
+  in if throwAgain
+     then onePlayerLogic newYData3
+     else newYData3
 
 
+-- next m init = m
 
--- requestChoice :: [String] -> YData -> (String, YData)
--- requestChoice choices ydata = 
---   let newData  = addMessages choices ydata
---       newData2 = addMessage ("Choose between 1 and " ++ show (length choices)) newData
---       (choiceStr, newData3)   = readLine newData2
---       choice = read choiceStr
---   in if (choice >= 1 && choice <= length choices)
---      then let choiceResult = choices !! (choice - 1)
---               newData4 = addMessage ("Go for " ++ choiceResult) newData3
---           in (choiceResult, newData4)
---      else let newData4 = addMessage "Incorrect choice!" newData3
---           in requestChoice choices newData4
+mainloop :: a -> (a -> IO b) -> (b -> a -> a) -> (a -> Bool) -> IO ()
+mainloop state askForChange changeState isDone = 
+  do change <- askForChange state
+     let newState = changeState change state
+     if isDone newState
+       then return ()
+       else mainloop newState askForChange changeState isDone
+  
+-- getNextMove s = do
+--  print $ pretty s
+--  l <- getLine
+--  return $ parse l
+
+mainOnePlayer :: IO ()
+mainOnePlayer = do ydata <- makeYData
+                   printMessages $ onePlayerLogic ydata
+
+
 
