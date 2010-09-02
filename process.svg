@@ -54,7 +54,7 @@
      inkscape:pageshadow="2"
      inkscape:zoom="0.98994949"
      inkscape:cx="348.30434"
-     inkscape:cy="381.74538"
+     inkscape:cy="502.96369"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -71,7 +71,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -79,18 +79,6 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1">
-    <g
-       id="g4465">
-      <rect
-         ry="2.9744854"
-         rx="2.9744852"
-         y="379.50504"
-         x="261.42859"
-         height="50.000011"
-         width="79.999985"
-         id="rect2985"
-         style="color:#000000;fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
-    </g>
     <flowRoot
        xml:space="preserve"
        id="flowRoot3759"
@@ -101,7 +89,7 @@
            height="54.548237"
            x="303.04578"
            y="446.27066" /></flowRegion><flowPara
-         id="flowPara3765"></flowPara></flowRoot>    <flowRoot
+         id="flowPara3765" /></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot3767"
        style="fill:black;stroke:none;stroke-opacity:1;stroke-width:1px;stroke-linejoin:miter;stroke-linecap:butt;fill-opacity:1;font-family:Bitstream Vera Sans;font-style:normal;font-weight:normal;font-size:40px;text-anchor:middle;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px"><flowRegion
@@ -111,12 +99,7 @@
            height="80.812202"
            x="50.507626"
            y="931.14386" /></flowRegion><flowPara
-         id="flowPara3773"></flowPara></flowRoot>    <path
-       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
-       d="m 299.51023,354.85185 0,20.20305"
-       id="path3775"
-       inkscape:connector-curvature="0" />
-    <path
+         id="flowPara3773" /></flowRoot>    <path
        sodipodi:type="star"
        style="color:#000000;fill:none;stroke:none;stroke-width:1;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
        id="path4403"
@@ -193,60 +176,6 @@
          id="tspan4444"
          x="254.05338"
          y="607.38995">r=3</tspan></text>
-    <g
-       id="g4472">
-      <text
-         sodipodi:linespacing="125%"
-         id="text3755"
-         y="419.70038"
-         x="299.95395"
-         style="font-size:40px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
-         xml:space="preserve"><tspan
-           y="419.70038"
-           x="299.95395"
-           id="tspan3757"
-           sodipodi:role="line">Init</tspan></text>
-      <g
-         id="g4468">
-        <rect
-           ry="2.9744854"
-           rx="2.9744852"
-           y="379.50504"
-           x="261.42859"
-           height="50.000011"
-           width="79.999985"
-           id="rect4470"
-           style="color:#000000;fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
-      </g>
-    </g>
-    <g
-       id="g4478"
-       transform="translate(-180.49891,116.19397)">
-      <text
-         xml:space="preserve"
-         style="font-size:40px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
-         x="299.95395"
-         y="419.70038"
-         id="text4480"
-         sodipodi:linespacing="125%"><tspan
-           sodipodi:role="line"
-           id="tspan4482"
-           x="299.95395"
-           y="419.70038">Done</tspan></text>
-      <g
-         id="g4484"
-         transform="matrix(1.3523149,0,0,1,-106.19778,0)">
-        <rect
-           style="color:#000000;fill:none;stroke:#000000;stroke-width:0.85992599;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
-           id="rect4486"
-           width="79.999985"
-           height="50.000011"
-           x="261.42859"
-           y="379.50504"
-           rx="2.1995506"
-           ry="2.9744854" />
-      </g>
-    </g>
     <path
        inkscape:connector-curvature="0"
        id="path4488"
@@ -453,5 +382,16 @@
          id="tspan4597"
          x="376.7869"
          y="829.11847">r--</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;text-align:center;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+       x="116.16754"
+       y="536.17426"
+       id="text3059"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan3061"
+         x="116.16754"
+         y="536.17426">done</tspan></text>
   </g>
 </svg>
