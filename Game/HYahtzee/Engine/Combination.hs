@@ -3,7 +3,7 @@
 module Game.HYahtzee.Engine.Combination where
 
 import Game.HYahtzee.Engine.Model
-import Data.List (nub, (\\))
+import Data.List (nub, (\\), intersect)
 
 freeCombinations :: YTable -> [CombinationName]
 freeCombinations table = 
@@ -17,22 +17,53 @@ isTableFull table = null $ freeCombinations table
 combinationNamed :: CombinationName -> Maybe CombinationTest
 combinationNamed name = lookup name combinationTests
 
+upperCombinationNames :: [String]
+upperCombinationNames = takeWhile (/= "OnePair") $ map fst combinationTests
+
+lowerCombinationNames :: [String]
+lowerCombinationNames = (map fst combinationTests) \\ upperCombinationNames
+
+
 combinationTests :: [(CombinationName, CombinationTest)]
 combinationTests = [ ("Aces", hasAces)
-                   , ("Twos", hasTwos)
-                   , ("Threes", hasThrees)
-                   , ("Fours", hasFours)
-                   , ("Fives", hasFives)
-                   , ("Sixes", hasSixes)
-                   , ("OnePair", hasOnePair)
-                   , ("TwoPairs", hasTwoPairs)
-                   , ("ThreeOfAKind", hasThreeOfAKind)
-                   , ("FourOfAKind", hasFourOfAKind)
-                   , ("FullHouse", hasFullHouse)
-                   , ("SmallStraight", hasSmallStraight)
-                   , ("LargeStraight", hasLargeStraight)
-                   , ("Yahtzee", hasYahtzee)
-                   , ("Chance", hasChance)]
+                   -- , ("Twos", hasTwos)
+                   -- , ("Threes", hasThrees)
+                   -- , ("Fours", hasFours)
+                   -- , ("Fives", hasFives)
+                     -- , ("Sixes", hasSixes)
+                      , ("OnePair", hasOnePair)
+                        -- , ("TwoPairs", hasTwoPairs)
+                   -- , ("ThreeOfAKind", hasThreeOfAKind)
+                   -- , ("FourOfAKind", hasFourOfAKind)
+                   -- , ("FullHouse", hasFullHouse)
+                   -- , ("SmallStraight", hasSmallStraight)
+                   -- , ("LargeStraight", hasLargeStraight)
+                   -- , ("Yahtzee", hasYahtzee)
+                   -- , ("Chance", hasChance)
+                   ]
+
+calculateTotalAndBonus :: YTable -> [(String, Score)]
+calculateTotalAndBonus ytable = 
+  let upperScores = calculateUpperScores
+      lowerScores = calculateLowerScores
+  in upperScores 
+     ++ lowerScores 
+     ++ [("Grand Total", ((snd .last) upperScores) + ((snd . last) lowerScores))]
+  where
+    calculateUpperScores = let combs = playedCombinations ytable `intersect` upperCombinationNames
+                               totalScore = sum (map (getScoreOr0 ytable) combs)
+                               bonus = if totalScore >= 63 then 35 else 0
+                               total = totalScore + bonus
+                               combsWithScore = [(comb, getScoreOr0 ytable comb) | comb <- combs]
+                           in combsWithScore ++ [ ("Total score", totalScore)
+                                                , ("Bonus", bonus)
+                                                , ("Total", total) ]
+    
+    calculateLowerScores = let combs = playedCombinations ytable `intersect` lowerCombinationNames
+                               totalScore = sum (map (getScoreOr0 ytable) combs)
+                               combsWithScore = [(comb, getScoreOr0 ytable comb) | comb <- combs]
+                           in combsWithScore ++ [ ("Total score", totalScore) ]
+
 
 dices2List :: Dices -> [DiceVal]
 dices2List (a,b,c,d,e) = [a,b,c,d,e]

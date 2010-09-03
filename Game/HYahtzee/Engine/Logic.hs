@@ -59,6 +59,7 @@ displayState ydata = do displayTable $ ydTable ydata
                         return ydata
 
 requestChoice :: String -> [String] -> IO String
+requestChoice _ (choice:[]) = return choice -- no need to choose when there is only one
 requestChoice title choices =
   let prettyChoices = map -- prefix each choice by a number to be typed by the user
                       (\(f,s) -> show s ++ "- " ++ f)
@@ -126,32 +127,40 @@ confirmSelection ydata = do displayDices $ keptDices ydata
                             keep <- request $  "Do you want to keep these dices?"
                             return ydata {selectionIsOk = keep}
 
+displayCompleteTable :: YData -> IO YData
+displayCompleteTable ydata = do let table = calculateTotalAndBonus $ ydTable ydata::[(String,Score)]
+                                table `forM_` (\(name, score) -> putStrLn $ name ++ "\t\t" ++ (show score))
+                                return ydata
+
+trSelectDices :: Transition YData
+trSelectDices = (TransNorm id (confirmSelection <=< askForSelection <=< displayState) chSelection)
+
+trChooseWhereToScore :: Transition YData
+trChooseWhereToScore = (TransNorm id (chooseWhereToScore <=< displayState) chTableFull)
+
 chTableFull :: Choice YData
 chTableFull = Choice
               isFull
-              (TransFinal id return) 
-              (TransNorm
-               (throwDices . resetRemainingThrows . resetKeptDices)
-               return
-               chRemainThrows)
+              (TransFinal id displayCompleteTable) 
+              (TransNorm (throwDices . resetRemainingThrows . resetKeptDices) return chRemainThrows)
 
 chRemainThrows :: Choice YData
 chRemainThrows = Choice
                  ((> 1) . remainingThrows)
                  (TransNorm id (askIfWantToScore <=< displayState) chWantToScore)
-                 (TransNorm id (chooseWhereToScore <=< displayState) chTableFull)
+                 trChooseWhereToScore
 
 chWantToScore :: Choice YData
 chWantToScore = Choice
                 wantToScore
-                (TransNorm id (chooseWhereToScore <=< displayState) chTableFull)
-                (TransNorm id (confirmSelection <=< askForSelection <=< displayState) chSelection)
+                trChooseWhereToScore
+                trSelectDices
 
 chSelection :: Choice YData
 chSelection = Choice
               selectionIsOk
                 (TransNorm (throwDices . decrementRemainingThrows) return chRemainThrows)
-                (TransNorm id (confirmSelection <=< askForSelection <=< displayState) chSelection)
+                trSelectDices
 
 mainOnePlayer :: IO ()
 mainOnePlayer = do ydata <- makeYData
