@@ -10,13 +10,13 @@ Name:                hyahtzee
 Version:             0.1
 
 -- A short (one-line) description of the package.
-Synopsis:            Blou blou
+Synopsis:            A Yahtzee game implementation in Haskell
 
 -- A longer description of the package.
--- Description:         
+Description:         The classic dice game Yahtzee implemented in Haskell.
 
 -- URL for the project homepage or repository.
-Homepage:            dsd
+Homepage:            http://github.com/DamienCassou/HYahtzee
 
 -- The license under which the package is released.
 License:             BSD3
@@ -29,7 +29,7 @@ Author:              Damien Cassou
 
 -- An email address to which users can send suggestions, bug reports,
 -- and patches.
-Maintainer:          dd
+Maintainer:          damien.cassou@gmail.com
 
 -- A copyright notice.
 -- Copyright:           
@@ -48,10 +48,10 @@ Cabal-version:       >=1.2
 
 Executable hyahtzee
   -- .hs or .lhs file containing the Main module.
-  -- Main-is:             
+  Main-is:           Game/HYahtzee/Main.hs
   
   -- Packages needed in order to build this package.
-  -- Build-depends:       
+  Build-depends:     random, base >= 4 && < 5, containers
   
   -- Modules not exported by this package.
   -- Other-modules:       

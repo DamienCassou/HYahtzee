@@ -79,7 +79,7 @@ isFull :: YData -> Bool
 isFull = isTableFull . ydTable
 
 request :: String -> IO Bool
-request title = do putStr $ title ++ " [y/n] "
+request title = do putStrLn $ title ++ " [y/n] "
                    line <- getLine
                    case head line of
                      'y' -> return True
