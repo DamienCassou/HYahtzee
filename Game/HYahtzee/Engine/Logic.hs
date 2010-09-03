@@ -33,8 +33,8 @@ consumeRandoms num ydata = let (taken, rest) = splitAt num $ ydRandoms ydata
                            in (taken,newData)
 
 throwDices :: YData -> YData
-throwDices ydata = let (dices, newYData1) = consumeRandoms (5 - (length $ keptDices ydata)) ydata
-                   in newYData1 {ydDices = dices ++ (keptDices ydata)}
+throwDices ydata = let (dices, newYData1) = consumeRandoms (5 - length (keptDices ydata)) ydata
+                   in newYData1 {ydDices = dices ++ keptDices ydata}
 
 displayDices :: [DiceVal] -> IO ()
 displayDices dices = do putStr "{"
@@ -113,10 +113,10 @@ askIfWantToScore ydata = do want <- request "Do you want to score now?"
                             
 askForSelection :: YData -> IO YData
 askForSelection ydata = do displayDices [1..5]
-                           putStrLn "Type indices of dices to keep:"
+                           putStrLn "Type indices of dices to keep (no separation):"
                            line <- getLine
                            let indices = map (read . (: [])) line -- "123" -> [1,2,3]
-                           if (all (between 1 6) indices)
+                           if all (between 1 6) indices
                              then let dices = ydDices ydata
                                       kept = [ dices !! (index - 1) | index <- indices]
                                   in return ydata {keptDices = sort kept}
@@ -124,19 +124,19 @@ askForSelection ydata = do displayDices [1..5]
 
 confirmSelection :: YData -> IO YData
 confirmSelection ydata = do displayDices $ keptDices ydata
-                            keep <- request $  "Do you want to keep these dices?"
+                            keep <- request "Do you want to keep these dices?"
                             return ydata {selectionIsOk = keep}
 
 displayCompleteTable :: YData -> IO YData
 displayCompleteTable ydata = do let table = calculateTotalAndBonus $ ydTable ydata::[(String,Score)]
-                                table `forM_` (\(name, score) -> putStrLn $ name ++ "\t\t" ++ (show score))
+                                table `forM_` (\(name, score) -> putStrLn $ name ++ "\t\t" ++ show score)
                                 return ydata
 
 trSelectDices :: Transition YData
-trSelectDices = (TransNorm id (confirmSelection <=< askForSelection <=< displayState) chSelection)
+trSelectDices = TransNorm id (confirmSelection <=< askForSelection <=< displayState) chSelection
 
 trChooseWhereToScore :: Transition YData
-trChooseWhereToScore = (TransNorm id (chooseWhereToScore <=< displayState) chTableFull)
+trChooseWhereToScore = TransNorm id (chooseWhereToScore <=< displayState) chTableFull
 
 chTableFull :: Choice YData
 chTableFull = Choice

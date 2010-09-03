@@ -10,7 +10,7 @@ import Game.HYahtzee.Engine.Logic
 {- Unit Tests -}
 
 myTable :: YTable
-myTable = ((addScore "Aces" 70) . (addScore "OnePair" 10)) makeTable
+myTable = (addScore "Aces" 70 . addScore "OnePair" 10) makeTable
 
 myData :: YData
 myData = YData myTable [6,5,4,3,2,1] [] [] maxThrows True True
