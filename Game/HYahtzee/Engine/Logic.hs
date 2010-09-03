@@ -133,38 +133,50 @@ displayCompleteTable ydata = do let table = calculateTotalAndBonus $ ydTable yda
                                 return ydata
 
 trSelectDices :: Transition YData
-trSelectDices = TransNorm id (confirmSelection <=< askForSelection <=< displayState) chSelection
+trSelectDices = TransNorm "trSelectDices" id chSelection
 
 trChooseWhereToScore :: Transition YData
-trChooseWhereToScore = TransNorm id (chooseWhereToScore <=< displayState) chTableFull
+trChooseWhereToScore = TransNorm "trChooseWhereToScore" id chTableFull
+
+trInitialThrow :: Transition YData
+trInitialThrow = TransNorm
+                 "trInitialThrow" 
+                 (throwDices . resetRemainingThrows . resetKeptDices)
+                 chRemainThrows
+
+trFinal :: Transition YData
+trFinal = TransFinal "final" id
+
+trAskWantToScore :: Transition YData
+trAskWantToScore = TransNorm "trAskWantToScore" id chWantToScore
+
+trRethrow :: Transition YData
+trRethrow = TransNorm "trRethrow" (throwDices . decrementRemainingThrows) chRemainThrows
 
 chTableFull :: Choice YData
-chTableFull = Choice
-              isFull
-              (TransFinal id displayCompleteTable) 
-              (TransNorm (throwDices . resetRemainingThrows . resetKeptDices) return chRemainThrows)
+chTableFull = Choice isFull trFinal trInitialThrow
 
 chRemainThrows :: Choice YData
-chRemainThrows = Choice
-                 ((> 1) . remainingThrows)
-                 (TransNorm id (askIfWantToScore <=< displayState) chWantToScore)
-                 trChooseWhereToScore
+chRemainThrows = Choice ((> 1) . remainingThrows) trAskWantToScore trChooseWhereToScore
 
 chWantToScore :: Choice YData
-chWantToScore = Choice
-                wantToScore
-                trChooseWhereToScore
-                trSelectDices
+chWantToScore = Choice wantToScore trChooseWhereToScore trSelectDices
 
 chSelection :: Choice YData
-chSelection = Choice
-              selectionIsOk
-                (TransNorm (throwDices . decrementRemainingThrows) return chRemainThrows)
-                trSelectDices
+chSelection = Choice  selectionIsOk trRethrow trSelectDices
+
+iothingy :: String -> YData -> IO YData
+iothingy "trSelectDices" = confirmSelection <=< askForSelection <=< displayState
+iothingy "trChooseWhereToScore" = chooseWhereToScore <=< displayState
+iothingy "final" = displayCompleteTable
+iothingy "trInitialThrow" = return
+iothingy "trAskWantToScore" = askIfWantToScore <=< displayState
+iothingy "trRethrow" = return
+iothingy _ = return
 
 mainOnePlayer :: IO ()
 mainOnePlayer = do ydata <- makeYData
-                   _ <- executeChoice ydata chTableFull
+                   _ <- executeChoice ydata chTableFull iothingy
                    return ()
                      
 
