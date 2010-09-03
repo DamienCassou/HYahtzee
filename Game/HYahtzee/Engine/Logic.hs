@@ -113,7 +113,7 @@ askIfWantToScore ydata = do want <- request "Do you want to score now?"
                             
 askForSelection :: YData -> IO YData
 askForSelection ydata = do displayDices [1..5]
-                           putStrLn "Type indices of dices to keep (no separation):"
+                           putStrLn "Type indices of dices to keep (e.g., 145):"
                            line <- getLine
                            let indices = map (read . (: [])) line -- "123" -> [1,2,3]
                            if all (between 1 6) indices
