@@ -16,19 +16,19 @@ executeTransition state (TransFinal f io) =
   
 executeChoice :: a -> Choice a -> IO a
 executeChoice state (Choice test t1 t2) =
-  if (test state)
+  if test state
   then executeTransition state t1
   else executeTransition state t2
        
 
 {- Example -}
 mytran :: Transition Integer
-mytran = (TransNorm
+mytran = TransNorm
           (\x -> x - 1)
-          (\x -> do {(putStrLn . show) x; return x})
+          (\x -> print x >> return x)
           (Choice (> 1)
            mytran
-           (TransFinal id (\x -> return x))))
+           (TransFinal id return))
          
 main :: IO ()
 main = executeTransition 6 mytran >> return ()
