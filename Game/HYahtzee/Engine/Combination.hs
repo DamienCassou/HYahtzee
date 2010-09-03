@@ -113,6 +113,7 @@ hasSmallStraight dices = let ldices = nub (dices2List dices)
                             [2,3,4,5] ->  (CombinationResult ldices 30)
                             [3,4,5,6] ->  (CombinationResult ldices 30)
                             [1,2,3,4,5] ->  (CombinationResult (tail ldices) 30)
+                            [1,2,3,4,6] ->  (CombinationResult (tail ldices) 30)
                             [2,3,4,5,6] ->   (CombinationResult (tail ldices) 30)
                             _ ->  (CombinationResult [] 0)
                             
