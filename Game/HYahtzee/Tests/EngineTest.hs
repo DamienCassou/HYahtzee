@@ -15,6 +15,22 @@ myTable = (addScore "Aces" 70 . addScore "OnePair" 10) makeTable
 myData :: YData
 myData = YData myTable [6,5,4,3,2,1] [] [] maxThrows True True
 
+testReadSequence :: Test
+testReadSequence = TestCase (do
+                                assertEqual ""
+                                  [1,2,3]
+                                  ((readSequence "123")::[Int])
+                                assertEqual ""
+                                  []
+                                  ((readSequence "3a1")::[Int]))
+                   
+ 
+                                  
+logicTests :: Test
+logicTests = TestList [
+  TestLabel "testReadSequence" testReadSequence
+  ]
+            
 assertTestResult :: CombinationTest -> Dices -> [DiceVal] -> Score -> Assertion
 assertTestResult providedTest providedDices expectedDices expectedScore =
   assertEqual ""
@@ -92,7 +108,7 @@ combTests = TestList [
   ]
                    
 allTests :: Test
-allTests = TestList [combTests]
+allTests = TestList [logicTests, combTests]
 
 mainTests :: IO Counts
 mainTests = runTestTT allTests

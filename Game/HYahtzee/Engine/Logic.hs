@@ -68,7 +68,11 @@ requestChoice title choices =
         prettyChoices `forM_` putStrLn
         putStrLn $ "Your choice between 1 and " ++ (show . length) choices
         input <- getLine
-        return $ choices !! (read input - 1)
+        case reads input of
+          [(num,_)] -> if between 1 (length choices) num
+                          then return $ choices !! (num - 1)
+                       else requestChoice title choices
+          _ -> requestChoice title choices
 
 list2dices :: [DiceVal] -> Dices
 list2dices dices = list2dices_ $ sort dices where
@@ -81,10 +85,17 @@ isFull = isTableFull . ydTable
 request :: String -> IO Bool
 request title = do putStrLn $ title ++ " [y/n] "
                    line <- getLine
-                   case head line of
-                     'y' -> return True
-                     'n' -> return False
+                   case line of
+                     "y" -> return True
+                     "n" -> return False
                      _   -> request title
+
+readSequence :: (Read a) => String -> [a]
+readSequence "" = []
+readSequence line = let parse = map (reads . (: [])) line
+                    in if any null parse
+                       then []
+                       else map (fst . head) parse
 
 resetRemainingThrows :: YData -> YData
 resetRemainingThrows ydata = ydata {remainingThrows = maxThrows}
@@ -110,13 +121,13 @@ decrementRemainingThrows ydata = ydata {remainingThrows = remainingThrows ydata 
 askIfWantToScore :: YData -> IO YData
 askIfWantToScore ydata = do want <- request "Do you want to score now?"
                             return ydata {wantToScore = want}
-                            
+                         
 askForSelection :: YData -> IO YData
 askForSelection ydata = do displayDices [1..5]
                            putStrLn "Type indices of dices to keep (e.g., 145):"
                            line <- getLine
-                           let indices = map (read . (: [])) line -- "123" -> [1,2,3]
-                           if all (between 1 6) indices
+                           let indices = readSequence line
+                           if all (between 1 5) indices
                              then let dices = ydDices ydata
                                       kept = [ dices !! (index - 1) | index <- indices]
                                   in return ydata {keptDices = sort kept}
