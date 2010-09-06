@@ -1,4 +1,4 @@
-import Game.HYahtzee.Engine.Logic
+import Game.HYahtzee.UI.SimpleIO
 
 main :: IO ()
-main = logicMain
+main = simpleIOMain
