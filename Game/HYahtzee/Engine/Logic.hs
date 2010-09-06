@@ -77,45 +77,48 @@ between min_ max_ val = (min_ <= val) && (val <= max_)
 decrementRemainingThrows :: YData -> YData
 decrementRemainingThrows ydata = ydata {remainingThrows = remainingThrows ydata - 1}
 
-trAskNumOfPlayers :: Transition YData
-trAskNumOfPlayers = TransNorm "trAskNumOfPlayers" id chTableFull
+data YLabel = SelectDices | ChooseWhereToScore | InitialThrow | AskWantToScore 
+            | Rethrow | AskNumOfPlayers | SwitchPlayer | Final
 
-trSelectDices :: Transition YData
-trSelectDices = TransNorm "trSelectDices" id chSelection
+trAskNumOfPlayers :: Transition YLabel YData
+trAskNumOfPlayers = TransNorm AskNumOfPlayers id chTableFull
 
-trChooseWhereToScore :: Transition YData
-trChooseWhereToScore = TransNorm "trChooseWhereToScore" id chSwitchPlayer
+trSelectDices :: Transition YLabel YData
+trSelectDices = TransNorm SelectDices id chSelection
 
-trSwitchPlayer :: Transition YData
-trSwitchPlayer = TransNorm "trSwitchPlayer" (nextPlayer) chTableFull
+trChooseWhereToScore :: Transition YLabel YData
+trChooseWhereToScore = TransNorm ChooseWhereToScore id chSwitchPlayer
 
-trInitialThrow :: Transition YData
+trSwitchPlayer :: Transition YLabel YData
+trSwitchPlayer = TransNorm SwitchPlayer (nextPlayer) chTableFull
+
+trInitialThrow :: Transition YLabel YData
 trInitialThrow = TransNorm
-                 "trInitialThrow" 
+                 InitialThrow
                  (throwDices . resetRemainingThrows . resetKeptDices)
                  chRemainThrows
 
-trAskWantToScore :: Transition YData
-trAskWantToScore = TransNorm "trAskWantToScore" id chWantToScore
+trAskWantToScore :: Transition YLabel YData
+trAskWantToScore = TransNorm AskWantToScore id chWantToScore
 
-trRethrow :: Transition YData
-trRethrow = TransNorm "trRethrow" (throwDices . decrementRemainingThrows) chRemainThrows
+trRethrow :: Transition YLabel YData
+trRethrow = TransNorm Rethrow (throwDices . decrementRemainingThrows) chRemainThrows
 
-trFinal :: Transition YData
-trFinal = TransFinal "final" id
+trFinal :: Transition YLabel YData
+trFinal = TransFinal Final id
 
-chSwitchPlayer :: Choice YData
+chSwitchPlayer :: Choice YLabel YData
 chSwitchPlayer = Choice (\_ -> True) trSwitchPlayer trSwitchPlayer
 
-chTableFull :: Choice YData
+chTableFull :: Choice YLabel YData
 chTableFull = Choice isFull trFinal trInitialThrow
 
-chRemainThrows :: Choice YData
+chRemainThrows :: Choice YLabel YData
 chRemainThrows = Choice ((> 1) . remainingThrows) trAskWantToScore trChooseWhereToScore
 
-chWantToScore :: Choice YData
+chWantToScore :: Choice YLabel YData
 chWantToScore = Choice wantToScore trChooseWhereToScore trSelectDices
 
-chSelection :: Choice YData
+chSelection :: Choice YLabel YData
 chSelection = Choice  selectionIsOk trRethrow trSelectDices
 

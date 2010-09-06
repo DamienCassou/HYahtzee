@@ -116,15 +116,15 @@ displayCompleteTables ydata = do putStrLn "\n"
                                  return ydata
 
 
-iothingy :: String -> YData -> IO YData
-iothingy "trSelectDices" = confirmSelection <=< askForSelection <=< displayState
-iothingy "trChooseWhereToScore" = chooseWhereToScore <=< displayState
-iothingy "final" = displayCompleteTables
-iothingy "trInitialThrow" = return
-iothingy "trAskWantToScore" = askIfWantToScore <=< displayState
-iothingy "trRethrow" = return
-iothingy "trAskNumOfPlayers" = askNumOfPlayers
-iothingy _ = return
+iothingy :: YLabel -> YData -> IO YData
+iothingy SelectDices = confirmSelection <=< askForSelection <=< displayState
+iothingy ChooseWhereToScore = chooseWhereToScore <=< displayState
+iothingy InitialThrow = return
+iothingy AskWantToScore = askIfWantToScore <=< displayState
+iothingy Rethrow = return
+iothingy AskNumOfPlayers = askNumOfPlayers
+iothingy SwitchPlayer = return
+iothingy Final = displayCompleteTables
 
 simpleIOMain :: IO ()
 simpleIOMain = do ydata <- makeYData
