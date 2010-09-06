@@ -1,4 +1,4 @@
 import Game.HYahtzee.Engine.Logic
 
 main :: IO ()
-main = mainOnePlayer
+main = logicMain

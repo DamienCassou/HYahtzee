@@ -10,7 +10,9 @@ import Data.List (sort)
 import Control.Monad
 import System.Random (getStdGen, randomRs)
   
-data YData = YData { ydTable :: YTable
+data YData = YData { ydTables :: [YTable]
+                   , ydCurPlayer :: Int
+                   , ydNumPlayers :: Int
                    , ydRandoms :: [DiceVal]
                    , ydDices :: [DiceVal]
                    , keptDices :: [DiceVal]
@@ -25,7 +27,7 @@ maxThrows = 3
 makeYData :: IO YData
 makeYData = do gen <- getStdGen
                let randomValues = (randomRs (1,6) gen)
-               return (YData makeTable randomValues [] [] maxThrows True True)
+               return (YData [] 0 0 randomValues [] [] maxThrows True True)
 
 consumeRandoms :: Int-> YData -> ([DiceVal], YData)
 consumeRandoms num ydata = let (taken, rest) = splitAt num $ ydRandoms ydata
@@ -35,6 +37,15 @@ consumeRandoms num ydata = let (taken, rest) = splitAt num $ ydRandoms ydata
 throwDices :: YData -> YData
 throwDices ydata = let (dices, newYData1) = consumeRandoms (5 - length (keptDices ydata)) ydata
                    in newYData1 {ydDices = dices ++ keptDices ydata}
+
+ydTable :: YData -> YTable
+ydTable ydata = ydTables ydata !! (ydCurPlayer ydata)
+
+changeTable :: YTable -> YData -> YData
+changeTable newTable ydata = 
+  case splitAt (ydCurPlayer ydata) (ydTables ydata) of
+    (before, (_:after)) -> ydata {ydTables = before ++ [newTable] ++ after}
+    _                   -> ydata
 
 displayDices :: [DiceVal] -> IO ()
 displayDices dices = do putStr "{"
@@ -53,8 +64,14 @@ displayTable ytable = let table = [(name, getScore ytable name) | (name,_) <- co
                                               Just s -> show s
                                               Nothing -> ""))
 
+displayPlayerHeader :: Int -> IO ()
+displayPlayerHeader num = do putStrLn   "--------"
+                             putStrLn $ "Player " ++ (show num)
+                             putStrLn   "--------"
+                             
 displayState :: YData -> IO YData
-displayState ydata = do displayTable $ ydTable ydata
+displayState ydata = do displayPlayerHeader $ ydCurPlayer ydata + 1
+                        displayTable $ ydTable ydata
                         displayDices $ ydDices ydata
                         return ydata
 
@@ -90,12 +107,28 @@ request title = do putStrLn $ title ++ " [y/n] "
                      "n" -> return False
                      _   -> request title
 
+requestInt :: String -> IO Int
+requestInt title = do putStrLn title 
+                      line <- getLine
+                      case (reads line)::[(Int,String)] of
+                        [(val, _)] -> return val
+                        _          -> requestInt title
+
+
 readSequence :: (Read a) => String -> [a]
 readSequence "" = []
 readSequence line = let parse = map (reads . (: [])) line
                     in if any null parse
                        then []
                        else map (fst . head) parse
+
+askNumOfPlayers :: YData -> IO YData
+askNumOfPlayers ydata = do num <- requestInt "How many players?"
+                           let tables = replicate num makeTable
+                           return ydata {ydTables = tables, ydCurPlayer = 0, ydNumPlayers = num}
+
+nextPlayer :: YData -> YData
+nextPlayer ydata = ydata {ydCurPlayer = (ydCurPlayer ydata + 1) `mod` (ydNumPlayers ydata)}
 
 resetRemainingThrows :: YData -> YData
 resetRemainingThrows ydata = ydata {remainingThrows = maxThrows}
@@ -111,7 +144,7 @@ chooseWhereToScore ydata = do let availableCombs = freeCombinations $ ydTable yd
                                 Just test -> let dices = list2dices $ ydDices ydata
                                                  (CombinationResult _ score) = test dices
                                                  newTable = addScore choice score $ ydTable ydata
-                                             in return ydata {ydTable = newTable}
+                                             in return $ changeTable newTable ydata
 between :: Int -> Int -> Int -> Bool
 between min_ max_ val = (min_ <= val) && (val <= max_)
 
@@ -138,16 +171,28 @@ confirmSelection ydata = do displayDices $ keptDices ydata
                             keep <- request "Do you want to keep these dices?"
                             return ydata {selectionIsOk = keep}
 
-displayCompleteTable :: YData -> IO YData
-displayCompleteTable ydata = do let table = calculateTotalAndBonus $ ydTable ydata::[(String,Score)]
-                                table `forM_` (\(name, score) -> putStrLn $ name ++ "\t\t" ++ show score)
-                                return ydata
+displayCompleteTable :: Int -> YData -> IO ()
+displayCompleteTable numPlayer ydata = let ytable = ydTables ydata !! numPlayer
+                                           table = calculateTotalAndBonus ytable
+                                       in do displayPlayerHeader (numPlayer + 1)
+                                             table `forM_` (\(name, score) -> putStrLn $ name ++ "\t\t" ++ show score)
+
+displayCompleteTables :: YData -> IO YData
+displayCompleteTables ydata = do putStrLn "\n"
+                                 [0..(ydNumPlayers ydata - 1)] `forM_` (\numPlayer -> displayCompleteTable numPlayer ydata >> putStrLn "")
+                                 return ydata
+
+trAskNumOfPlayers :: Transition YData
+trAskNumOfPlayers = TransNorm "trAskNumOfPlayers" id chTableFull
 
 trSelectDices :: Transition YData
 trSelectDices = TransNorm "trSelectDices" id chSelection
 
 trChooseWhereToScore :: Transition YData
-trChooseWhereToScore = TransNorm "trChooseWhereToScore" id chTableFull
+trChooseWhereToScore = TransNorm "trChooseWhereToScore" id chSwitchPlayer
+
+trSwitchPlayer :: Transition YData
+trSwitchPlayer = TransNorm "trSwitchPlayer" (nextPlayer) chTableFull
 
 trInitialThrow :: Transition YData
 trInitialThrow = TransNorm
@@ -155,14 +200,17 @@ trInitialThrow = TransNorm
                  (throwDices . resetRemainingThrows . resetKeptDices)
                  chRemainThrows
 
-trFinal :: Transition YData
-trFinal = TransFinal "final" id
-
 trAskWantToScore :: Transition YData
 trAskWantToScore = TransNorm "trAskWantToScore" id chWantToScore
 
 trRethrow :: Transition YData
 trRethrow = TransNorm "trRethrow" (throwDices . decrementRemainingThrows) chRemainThrows
+
+trFinal :: Transition YData
+trFinal = TransFinal "final" id
+
+chSwitchPlayer :: Choice YData
+chSwitchPlayer = Choice (\_ -> True) trSwitchPlayer trSwitchPlayer
 
 chTableFull :: Choice YData
 chTableFull = Choice isFull trFinal trInitialThrow
@@ -179,16 +227,17 @@ chSelection = Choice  selectionIsOk trRethrow trSelectDices
 iothingy :: String -> YData -> IO YData
 iothingy "trSelectDices" = confirmSelection <=< askForSelection <=< displayState
 iothingy "trChooseWhereToScore" = chooseWhereToScore <=< displayState
-iothingy "final" = displayCompleteTable
+iothingy "final" = displayCompleteTables
 iothingy "trInitialThrow" = return
 iothingy "trAskWantToScore" = askIfWantToScore <=< displayState
 iothingy "trRethrow" = return
+iothingy "trAskNumOfPlayers" = askNumOfPlayers
 iothingy _ = return
 
-mainOnePlayer :: IO ()
-mainOnePlayer = do ydata <- makeYData
-                   _ <- executeChoice ydata chTableFull iothingy
-                   return ()
+logicMain :: IO ()
+logicMain = do ydata <- makeYData
+               _ <- executeTransition ydata trAskNumOfPlayers iothingy
+               return ()
                      
 
 

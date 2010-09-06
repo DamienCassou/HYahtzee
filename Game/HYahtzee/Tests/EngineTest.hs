@@ -13,7 +13,7 @@ myTable :: YTable
 myTable = (addScore "Aces" 70 . addScore "OnePair" 10) makeTable
 
 myData :: YData
-myData = YData myTable [6,5,4,3,2,1] [] [] maxThrows True True
+myData = YData [myTable] 0 1 [6,5,4,3,2,1] [] [] maxThrows True True
 
 testReadSequence :: Test
 testReadSequence = TestCase (do
@@ -45,7 +45,7 @@ testHasOnePair = TestCase (do
                                 hasOnePair (1,2,2,3,4) [2,2] 4
                               assertTestResult
                                 hasOnePair (1,2,2,2,2) [2,2] 4)
-                 
+
 testHasTwoPairs :: Test
 testHasTwoPairs= TestCase (do
                               assertTestResult
