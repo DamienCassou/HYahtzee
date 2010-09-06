@@ -4,20 +4,15 @@ module Game.HYahtzee.UI.SimpleIO where
 
 import Game.HYahtzee.Engine.Logic
 import Control.Monad
-import Data.List (sort)
+import Data.List (sort, intercalate)
 import Game.HYahtzee.Engine.Model
 import Game.HYahtzee.Engine.Combination
 import Game.HYahtzee.Engine.Transition
 
 displayDices :: [DiceVal] -> IO ()
 displayDices dices = do putStr "{"
-                        displayDices_ dices
-                        putStrLn "}" where
-                          displayDices_ :: [DiceVal] -> IO ()
-                          displayDices_ [] = return ()
-                          displayDices_ (d1:rest@(_:_)) = do putStr $ show d1 ++ ", "
-                                                             displayDices_ rest
-                          displayDices_ (d1:[]) = putStr $ show d1
+                        putStr $ intercalate ", " $ map show dices
+                        putStrLn "}"
 
 displayTable :: YTable -> IO ()
 displayTable ytable = let table = [(name, getScore ytable name) | (name,_) <- combinationTests]
@@ -40,9 +35,9 @@ displayState ydata = do displayPlayerHeader $ ydCurPlayer ydata + 1
 requestChoice :: String -> [String] -> IO String
 requestChoice _ (choice:[]) = return choice -- no need to choose when there is only one
 requestChoice title choices =
-  let prettyChoices = map -- prefix each choice by a number to be typed by the user
-                      (\(f,s) -> show s ++ "- " ++ f)
-                      (zip choices ([1..] :: [Integer]))
+  let prettyChoices = zipWith -- prefix each choice by a number to be typed by the user
+                      (\choice num -> show num ++ "- " ++ choice)
+                      choices ([1..]::[Integer])
   in do putStrLn title
         prettyChoices `forM_` putStrLn
         putStrLn $ "Your choice between 1 and " ++ (show . length) choices

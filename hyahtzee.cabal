@@ -26,4 +26,5 @@ Executable hyahtzee
                      Game.HYahtzee.Engine.Model
                      Game.HYahtzee.Engine.Transition
                      Game.HYahtzee.Tests.EngineTest
+                     Game.HYahtzee.UI.SimpleIO
 
