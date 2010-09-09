@@ -3,6 +3,7 @@
 module Game.HYahtzee.Engine.Model where
 
 import qualified Data.Map as Map
+import Data.Maybe
 
 type DiceVal = Int
 type Dices = (DiceVal,DiceVal,DiceVal,DiceVal,DiceVal)
@@ -24,9 +25,7 @@ getScore :: YTable -> CombinationName -> Maybe Score
 getScore (YTable table) testName = Map.lookup testName table
 
 getScoreOr0 :: YTable -> CombinationName -> Score
-getScoreOr0 ytable testName = case getScore ytable testName of
-                                 Just val -> val
-                                 Nothing -> 0
+getScoreOr0 ytable testName = fromMaybe 0 $ getScore ytable testName
 
 addScore :: CombinationName -> Score -> YTable -> YTable
 addScore k a (YTable table) = YTable $ Map.insert k a table

@@ -6,7 +6,6 @@ import Test.HUnit
 import Game.HYahtzee.Engine.Model
 import Game.HYahtzee.Engine.Combination
 import Game.HYahtzee.Engine.Logic
-
 {- Unit Tests -}
 
 myTable :: YTable
@@ -19,10 +18,10 @@ testReadSequence :: Test
 testReadSequence = TestCase (do
                                 assertEqual ""
                                   [1,2,3]
-                                  ((readSequence "123")::[Int])
+                                  (readSequence "123"::[Int])
                                 assertEqual ""
                                   []
-                                  ((readSequence "3a1")::[Int]))
+                                  (readSequence "3a1"::[Int]))
                    
  
                                   

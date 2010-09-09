@@ -21,7 +21,7 @@ upperCombinationNames :: [String]
 upperCombinationNames = takeWhile (/= "OnePair") $ map fst combinationTests
 
 lowerCombinationNames :: [String]
-lowerCombinationNames = (map fst combinationTests) \\ upperCombinationNames
+lowerCombinationNames = map fst combinationTests \\ upperCombinationNames
 
 
 combinationTests :: [(CombinationName, CombinationTest)]
@@ -48,7 +48,7 @@ calculateTotalAndBonus ytable =
       lowerScores = calculateLowerScores
   in upperScores 
      ++ lowerScores 
-     ++ [("Grand Total", ((snd .last) upperScores) + ((snd . last) lowerScores))]
+     ++ [("Grand Total", (snd .last) upperScores + (snd . last) lowerScores)]
   where
     calculateUpperScores = let combs = playedCombinations ytable `intersect` upperCombinationNames
                                totalScore = sum (map (getScoreOr0 ytable) combs)

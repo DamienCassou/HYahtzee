@@ -23,7 +23,7 @@ displayTable ytable = let table = [(name, getScore ytable name) | (name,_) <- co
 
 displayPlayerHeader :: Int -> IO ()
 displayPlayerHeader num = do putStrLn   "--------"
-                             putStrLn $ "Player " ++ (show num)
+                             putStrLn $ "Player " ++ show num
                              putStrLn   "--------"
                              
 displayState :: YData -> IO YData
@@ -59,7 +59,7 @@ request title = do putStrLn $ title ++ " [y/n] "
 requestInt :: String -> IO Int
 requestInt title = do putStrLn title 
                       line <- getLine
-                      case (reads line)::[(Int,String)] of
+                      case reads line :: [(Int,String)] of
                         [(val, _)] -> return val
                         _          -> requestInt title
 

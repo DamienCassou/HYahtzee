@@ -38,12 +38,12 @@ throwDices ydata = let (dices, newYData1) = consumeRandoms (5 - length (keptDice
                    in newYData1 {ydDices = dices ++ keptDices ydata}
 
 ydTable :: YData -> YTable
-ydTable ydata = ydTables ydata !! (ydCurPlayer ydata)
+ydTable ydata = ydTables ydata !! ydCurPlayer ydata
 
 changeTable :: YTable -> YData -> YData
 changeTable newTable ydata = 
   case splitAt (ydCurPlayer ydata) (ydTables ydata) of
-    (before, (_:after)) -> ydata {ydTables = before ++ [newTable] ++ after}
+    (before, _:after) -> ydata {ydTables = before ++ [newTable] ++ after}
     _                   -> ydata
 
 
@@ -63,7 +63,7 @@ readSequence line = let parse = map (reads . (: [])) line
                        else map (fst . head) parse
 
 nextPlayer :: YData -> YData
-nextPlayer ydata = ydata {ydCurPlayer = (ydCurPlayer ydata + 1) `mod` (ydNumPlayers ydata)}
+nextPlayer ydata = ydata {ydCurPlayer = (ydCurPlayer ydata + 1) `mod` ydNumPlayers ydata}
 
 resetRemainingThrows :: YData -> YData
 resetRemainingThrows ydata = ydata {remainingThrows = maxThrows}
@@ -90,7 +90,7 @@ trChooseWhereToScore :: Transition YLabel YData
 trChooseWhereToScore = TransNorm ChooseWhereToScore id chSwitchPlayer
 
 trSwitchPlayer :: Transition YLabel YData
-trSwitchPlayer = TransNorm SwitchPlayer (nextPlayer) chTableFull
+trSwitchPlayer = TransNorm SwitchPlayer nextPlayer chTableFull
 
 trInitialThrow :: Transition YLabel YData
 trInitialThrow = TransNorm
