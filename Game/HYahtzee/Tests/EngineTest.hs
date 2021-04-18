@@ -1,6 +1,6 @@
 {-# OPTIONS -Wall #-}
 
-module Game.HYahtzee.Test.EngineTest where
+module Game.HYahtzee.Tests.EngineTest where
 
 import Test.HUnit 
 import Game.HYahtzee.Engine.Model
